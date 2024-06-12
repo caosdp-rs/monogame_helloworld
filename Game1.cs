@@ -24,6 +24,7 @@ public class Game1 : Game
     float mouseTargetDist;
     int score = 0;
     float timer = 10f;
+    int acerto=0;
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -55,8 +56,10 @@ public class Game1 : Game
         if (timer > 0)
         {
             timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-        }else{
-            timer =0;
+        }
+        else
+        {
+            timer = 0;
         }
         mState = Mouse.GetState();
 
@@ -65,7 +68,14 @@ public class Game1 : Game
         {
             if (mouseTargetDist < TARGET_RADIUS && timer > 0)
             {
-                score++;
+                float maxDistance = TARGET_RADIUS; // Distância máxima do centro que ainda conta pontos
+                float scoreMultiplier = 1.0f; // Multiplicador de pontuação, pode ajustar conforme necessário
+
+                // A pontuação será maior quanto mais próximo do centro
+                int additionalScore = (int)((maxDistance - mouseTargetDist) * scoreMultiplier);
+                score += additionalScore;
+                acerto = additionalScore;
+                //score++;
                 Random rand = new Random();
                 targetPosition.X = rand.Next(TARGET_RADIUS, _graphics.PreferredBackBufferWidth - TARGET_RADIUS + 1);
                 targetPosition.Y = rand.Next(TARGET_RADIUS, _graphics.PreferredBackBufferHeight - TARGET_RADIUS + 1);
@@ -92,8 +102,9 @@ public class Game1 : Game
             _spriteBatch.Draw(target_Sprite, new Vector2(targetPosition.X - TARGET_RADIUS, targetPosition.Y - TARGET_RADIUS), Color.White);
         }
         _spriteBatch.DrawString(game_Font, "Score:" + score.ToString(), new Vector2(3, 3), Color.Red);
-        _spriteBatch.DrawString(game_Font, "Time:"+ Math.Ceiling(timer).ToString(), new Vector2(3, 40), Color.White);
-        _spriteBatch.Draw(crosshairs_Sprite, new Vector2(mState.X-25, mState.Y-25), Color.White);
+        _spriteBatch.DrawString(game_Font, "Time:" + Math.Ceiling(timer).ToString(), new Vector2(3, 40), Color.White);
+        _spriteBatch.DrawString(game_Font, "Acerto:" + acerto.ToString(), new Vector2(3, 200), acerto < 25  ? Color.Red : Color.Blue);
+        _spriteBatch.Draw(crosshairs_Sprite, new Vector2(mState.X - 25, mState.Y - 25), Color.White);
         _spriteBatch.End();
 
 
