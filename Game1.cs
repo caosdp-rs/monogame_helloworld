@@ -15,7 +15,7 @@ public class Game1 : Game
     Texture2D target_Sprite;
     Texture2D crosshairs_Sprite;
     Texture2D background_Sprite;
-
+    Texture2D buttonTexture;
     SpriteFont game_Font;
     Vector2 targetPosition = new Vector2(300, 300);
     int TARGET_RADIUS = 45;
@@ -24,7 +24,9 @@ public class Game1 : Game
     float mouseTargetDist;
     int score = 0;
     float timer = 10f;
-    int acerto=0;
+    int acerto = 0;
+    private Rectangle restartButton;
+    private bool showRestartButton;
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -35,6 +37,8 @@ public class Game1 : Game
     protected override void Initialize()
     {
         // TODO: Add your initialization logic here
+        restartButton = new Rectangle(150, 0, 150, 80);
+        showRestartButton = false;
 
         base.Initialize();
     }
@@ -46,6 +50,9 @@ public class Game1 : Game
         crosshairs_Sprite = Content.Load<Texture2D>("crosshairs");
         background_Sprite = Content.Load<Texture2D>("sky");
         game_Font = Content.Load<SpriteFont>("galleryFont");
+        buttonTexture = Content.Load<Texture2D>("RestartHoverSprite");
+
+
         // TODO: use this.Content to load your game content here
     }
 
@@ -60,10 +67,34 @@ public class Game1 : Game
         else
         {
             timer = 0;
+            showRestartButton = true;
         }
         mState = Mouse.GetState();
 
+
         mouseTargetDist = Vector2.Distance(targetPosition, new Vector2(mState.X, mState.Y));
+
+        if (mState.LeftButton == ButtonState.Pressed  && mReleased == true)
+        {
+            // Verificar se o clique foi dentro do botão de reinício
+            if (showRestartButton && restartButton.Contains(mState.Position))
+            {
+                // Reiniciar o jogo
+                score = 0;
+                timer = 10f; // Reiniciar o cronômetro
+
+                // Definir nova posição inicial do alvo
+                Random rand = new Random();
+                targetPosition = new Vector2(
+                    rand.Next(TARGET_RADIUS, _graphics.PreferredBackBufferWidth - TARGET_RADIUS + 1),
+                    rand.Next(TARGET_RADIUS, _graphics.PreferredBackBufferHeight - TARGET_RADIUS + 1)
+                );
+
+                // Esconder o botão de reinício
+                showRestartButton = false;
+            }
+        }
+
         if (mState.LeftButton == ButtonState.Pressed && mReleased == true)
         {
             if (mouseTargetDist < TARGET_RADIUS && timer > 0)
@@ -103,8 +134,15 @@ public class Game1 : Game
         }
         _spriteBatch.DrawString(game_Font, "Score:" + score.ToString(), new Vector2(3, 3), Color.Red);
         _spriteBatch.DrawString(game_Font, "Time:" + Math.Ceiling(timer).ToString(), new Vector2(3, 40), Color.White);
-        _spriteBatch.DrawString(game_Font, "Acerto:" + acerto.ToString(), new Vector2(3, 200), acerto < 25  ? Color.Red : Color.Blue);
+        _spriteBatch.DrawString(game_Font, "Acerto:" + acerto.ToString(), new Vector2(3, 200), acerto < 25 ? Color.Red : Color.Blue);
+        
+
+        if (showRestartButton)
+        {
+            _spriteBatch.Draw(buttonTexture, restartButton, Color.White);
+        }
         _spriteBatch.Draw(crosshairs_Sprite, new Vector2(mState.X - 25, mState.Y - 25), Color.White);
+        
         _spriteBatch.End();
 
 
