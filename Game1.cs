@@ -27,6 +27,8 @@ public class Game1 : Game
     int acerto = 0;
     private Rectangle restartButton;
     private bool showRestartButton;
+    private ScoreClient _scoreClient;
+    private bool scoreSent;
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -39,7 +41,8 @@ public class Game1 : Game
         // TODO: Add your initialization logic here
         restartButton = new Rectangle(150, 0, 150, 80);
         showRestartButton = false;
-
+        _scoreClient = new ScoreClient("http://localhost:3000/");
+        scoreSent = false;
         base.Initialize();
     }
 
@@ -74,7 +77,7 @@ public class Game1 : Game
 
         mouseTargetDist = Vector2.Distance(targetPosition, new Vector2(mState.X, mState.Y));
 
-        if (mState.LeftButton == ButtonState.Pressed  && mReleased == true)
+        if (mState.LeftButton == ButtonState.Pressed && mReleased == true)
         {
             // Verificar se o clique foi dentro do botão de reinício
             if (showRestartButton && restartButton.Contains(mState.Position))
@@ -119,6 +122,32 @@ public class Game1 : Game
         {
             mReleased = true;
         }
+
+        if (showRestartButton && !scoreSent)
+        {
+            try
+            {
+                // Enviar o score ao servidor quando o jogo terminar
+                bool success = _scoreClient.SendScoreAsync("Player1", score).Result; // Usando .Result para aguardar a conclusão da operação assíncrona
+
+                if (success)
+                {
+                    Console.WriteLine("Score enviado com sucesso!");
+                    scoreSent = true;
+                }
+                else
+                {
+                    Console.WriteLine("Falha ao enviar score. Tentando novamente...");
+                    throw new Exception("Falha ao enviar score na primeira tentativa");
+                    // Implemente uma lógica de tentativa novamente se desejar
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao enviar score: {ex.Message}");
+                // Tratar o erro de forma apropriada, como exibir uma mensagem para o usuário
+            }
+        }
         base.Update(gameTime);
     }
 
@@ -135,14 +164,14 @@ public class Game1 : Game
         _spriteBatch.DrawString(game_Font, "Score:" + score.ToString(), new Vector2(3, 3), Color.Red);
         _spriteBatch.DrawString(game_Font, "Time:" + Math.Ceiling(timer).ToString(), new Vector2(3, 40), Color.White);
         _spriteBatch.DrawString(game_Font, "Acerto:" + acerto.ToString(), new Vector2(3, 200), acerto < 25 ? Color.Red : Color.Blue);
-        
+
 
         if (showRestartButton)
         {
             _spriteBatch.Draw(buttonTexture, restartButton, Color.White);
         }
         _spriteBatch.Draw(crosshairs_Sprite, new Vector2(mState.X - 25, mState.Y - 25), Color.White);
-        
+
         _spriteBatch.End();
 
 
